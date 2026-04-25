@@ -8,6 +8,7 @@ services:
       - ./redis/data:/data
     networks:
       - wallet_network
+    restart: always
 
   backend:
     build: ./backend
@@ -41,6 +42,14 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - MODEL_PATH=/app/models/phi-3-mini.gguf
+    volumes:
+      - ./models:/app/models
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+
     depends_on:
       - redis
     networks:
