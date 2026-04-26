@@ -32,7 +32,7 @@ async def enr(request: Request):
         lat, lon= res[0].get("latitude"), res[0].get("longitude")
         wea=requests.get(f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true")
         temp= wea.get("temperature")
-        con=get_conn(timestamp)
+        con=get_con(timestamp)
         dt= {"task_id": task_id, "intent_token": intent_token, "temperature": tmp, "day": con.get("day"), "is_holiday": con.get("is_holiday"), "holiday_name": con.get("holiday_name")}
         data=json.dumps(dt).encode("utf-8")
         pu=publisher.publish(CONTENT_TOPIC, data)
