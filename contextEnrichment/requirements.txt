@@ -1,3 +1,4 @@
+holidays
 uvicorn
 fastapi
 google-cloud-pubsub
