@@ -12,6 +12,7 @@ publisher=pubsub_v1.PublisherClient()
 INPUT_TOPIC=os.getenv("INPUT_TOPIC")
 MERCHANT_TOPIC=os.getenv("MERCHANT_TOPIC")
 import uuid
+from .schema import InputSchema, mercSchema
 from .auth import CustomAuth
 
 api=NinjaAPI()

@@ -5,4 +5,7 @@ class InputSchema(Schema):
     geo_zone:str
     timestamp: Optional[str]=None
 
-
+class mercSchema(Schema):
+    max_offer:int
+    traffic:float
+    target_item:Optional[str]=None
