@@ -2,15 +2,28 @@ from ninja import NinjaAPI
 from google.cloud import pubsub_v1
 import os,json
 from dotenv import load_dotenv
+from .models import ArtemisUser, ArtemisMerchant
+from django.shortcuts import get_object_or_404
 load_dotenv()
+from ninja.errors import HttpError
 cred=os.getenv("cred")
 os.environ["GOOGLE_CREDENTIALS_PATH"]=cred
 publisher=pubsub_v1.PublisherClient()
 INPUT_TOPIC=os.getenv("INPUT_TOPIC")
+MERCHANT_TOPIC=os.getenv("MERCHANT_TOPIC")
 import uuid
 from .auth import CustomAuth
 
 api=NinjaAPI()
+@api.post("/role-decider", auth=CustomAuth())
+def rolech(request, payload:RoleSchema):
+    user=request.auth
+    role=payload.role
+    art=get_object_or_404(ArtemisUser, email=user.email)
+    art.role=role
+    art.save()
+    return {"message": "role assigned successfully"}
+
 
 @api.get("/health")
 def chek(request):
@@ -26,4 +39,18 @@ def trig(request, payload: InputSchema):
     data=json.dumps(dt).encode("utf-8")
     pu=publisher.publish(INPUT_TOPIC, data)
     return {"status": f"published with id:{pu.result()}"}
+
+@api.post("/merchant", auth=CustomAuth())
+def merc(request, payload:mercSchema):
+    user=request.auth
+    if user.role != "merchant":
+        raise HttpError(403, "You are not allowed to perform this action")
+    ArtemisMerchant.objects.create(user=user, max_offer=payload.max_offer, traffic=payload.traffic, target_item=payload.target_item)
+    dt= {"merchant": user.email, "max_offer": payload.max_offer, "traffic": payload.traffic, "target_item": payload.target_item}
+    data=json.dumps(dt).encode("utf-8")
+    pu=publisher.publish(MERCHANT_TOPIC, data)
+    return {"status": f"published: {pu.result()}"}
+
+
+
 
