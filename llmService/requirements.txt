@@ -4,3 +4,6 @@ llama-cpp-python
 redis
 pydantic
 python-dotenv
+asyncpg
+httpx
+groq
