@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from utils.get_imp import get_con
 import requests
-from google_cloud import pubsub_v1
+from google.cloud import pubsub_v1
 cred=os.getenv("cred")
 os.environ["GOOGLE_CREDENTIALS_PATH"]=cred
 publisher=pubsub_v1.PublisherClient()

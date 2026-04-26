@@ -1,15 +1,13 @@
 #MODEL LOADER
 #MODEL LOADER
 # LLM/modelengine.py
+# Ensure you have 'GROQ_API_KEY' in your .env file
 import os
+from dotenv import load_dotenv
+load_dotenv()
 from groq import Groq
 import json
 from .prompt import SYSTEM_PROMPT, get_offer_prompt
-
-from dotenv import load_dotenv
-load_dotenv()
-
-# Ensure you have 'GROQ_API_KEY' in your .env file
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 def generate_city_offer(user_context, merchant_data):
@@ -34,8 +32,7 @@ def generate_city_offer(user_context, merchant_data):
         print(f"Error generating offer: {e}")
         return None
 
-# Example usage for testing:
-# if __name__ == "__main__":
-#     ctx = {"weather": "Rainy", "activity": "Browsing", "location": "Old Town"}
-#     mrc = {"name": "Café Central", "category": "Coffee", "traffic_level": "Quiet"}
-#     print(generate_city_offer(ctx, mrc))
+
+
+
+

@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 load_dotenv()
 from ninja.errors import HttpError
 cred=os.getenv("cred")
-os.environ["GOOGLE_CREDENTIALS_PATH"]=cred
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=cred
 publisher=pubsub_v1.PublisherClient()
 INPUT_TOPIC=os.getenv("INPUT_TOPIC")
 MERCHANT_TOPIC=os.getenv("MERCHANT_TOPIC")

@@ -8,7 +8,7 @@ cred=os.getenv("cred")
 os.environ["GOOGLE_CREDENTIALS_PATH"]=cred
 publisher=pubsub_v1.PublisherClient()
 AGGREGATOR_TOPIC=os.getenv("AGGREGATOR_TOPIC")
-redis_client=redis.Redis(host=os.getenv("REDIS_HOST"), password=os.getenv("REDIS_PASSWORD"), decode_responses=True)
+redis_client=redis.Redis(host=os.getenv("REDIS_HOST"), password=int(os.getenv("REDIS_PASSWORD")), decode_responses=True)
 
 
 app= FastAPI()
@@ -23,7 +23,7 @@ async def conte(request: Request):
             return {"status": "no data"}
         dcd=base64.b64decode(data).decode("utf-8")
         payload=json.loads(dcd)
-        task_id, intent_token = payload.get("task_id"), payload.get.("intent_token")
+        task_id, intent_token = payload.get("task_id"), payload.get("intent_token")
         temperature, day=payload.get("temperature"), payload.get("day")
         is_holiday, holiday_name=payload.get("is_holiday"), payload.get("holiday_name")
         redis_client.setex("context-data", 300, json.dumps(payload))
