@@ -4,7 +4,7 @@ whitenoise
 python-dotenv
 django-cors-headers
 python-jose
-google-cloud-pubsub
 requests
 google-auth
 daphne
+redis
