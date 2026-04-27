@@ -9,15 +9,22 @@ import os
 from .schema import InputSchema, mercSchema, RoleSchema
 from .auth import CustomAuth
 
-cred=os.getenv("cred")
+from ninja import NinjaAPI
+
+cred = os.getenv("cred")
 if cred:
-    os.environ["GOOGLE_CREDENTIALS_PATH"]=cred
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = cred
 
-publisher=pubsub_v1.PublisherClient()
-INPUT_TOPIC=os.getenv("INPUT_TOPIC")
-MERCHANT_TOPIC=os.getenv("MERCHANT_TOPIC")
+try:
+    publisher = pubsub_v1.PublisherClient()
+except Exception as e:
+    print(f"Warning: Failed to initialize PubSub client: {e}")
+    publisher = None
 
-api=NinjaAPI()
+INPUT_TOPIC = os.getenv("INPUT_TOPIC")
+MERCHANT_TOPIC = os.getenv("MERCHANT_TOPIC")
+
+api = NinjaAPI()
 
 @api.get("/me", auth=CustomAuth())
 def get_me(request):
