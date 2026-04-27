@@ -19,7 +19,7 @@ export default function RoleSelectPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${(session as any)?.accessToken}`,
+            Authorization: `Bearer ${(session as any)?.idToken}`,
           },
           body: JSON.stringify({ role }),
         }
