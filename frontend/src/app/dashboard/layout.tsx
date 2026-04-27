@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Wallet,
   LayoutDashboard,
@@ -21,14 +21,33 @@ export default function DashboardLayout({
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const [role, setRole] = useState<string | null>(null);
+  const [roleLoading, setRoleLoading] = useState(true);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/");
+    } else if (status === "authenticated" && session?.accessToken) {
+      // Fetch role
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/me`, {
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (!data.role && pathname !== "/dashboard/role-select") {
+            router.push("/dashboard/role-select");
+          } else {
+            setRole(data.role);
+          }
+        })
+        .catch((err) => console.error("Error fetching role:", err))
+        .finally(() => setRoleLoading(false));
     }
-  }, [status, router]);
+  }, [status, router, session, pathname]);
 
-  if (status === "loading") {
+  if (status === "loading" || (status === "authenticated" && roleLoading)) {
     return (
       <div
         style={{
@@ -55,12 +74,19 @@ export default function DashboardLayout({
 
   if (!session) return null;
 
-  const navItems = [
-    { href: "/dashboard", icon: <LayoutDashboard size={18} />, label: "Overview" },
-    { href: "/dashboard/discover", icon: <Search size={18} />, label: "Discover Offers" },
-    { href: "/dashboard/merchant", icon: <Store size={18} />, label: "Merchant Panel" },
-    { href: "/dashboard/profile", icon: <User size={18} />, label: "Profile" },
+  // Don't show sidebar on role-select page
+  if (pathname === "/dashboard/role-select") {
+    return <main className="main-content" style={{ width: "100%", margin: 0, minHeight: "100vh" }}>{children}</main>;
+  }
+
+  const allNavItems = [
+    { href: "/dashboard", icon: <LayoutDashboard size={18} />, label: "Overview", roles: ["user", "merchant"] },
+    { href: "/dashboard/discover", icon: <Search size={18} />, label: "Discover Offers", roles: ["user"] },
+    { href: "/dashboard/merchant", icon: <Store size={18} />, label: "Merchant Panel", roles: ["merchant"] },
+    { href: "/dashboard/profile", icon: <User size={18} />, label: "Profile", roles: ["user", "merchant"] },
   ];
+
+  const navItems = allNavItems.filter((item) => role && item.roles.includes(role));
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>

@@ -1,43 +1,46 @@
-from ninja import NinjaAPI
-import os
-import json
-import uuid
-import redis
-from dotenv import load_dotenv
-# from .models import ArtemisUser, ArtemisMerchant
+from .models import ArtemisUser, ArtemisMerchant
 from django.shortcuts import get_object_or_404
-# load_dotenv()
 from ninja.errors import HttpError
+import uuid
+import json
+from google.cloud import pubsub_v1
+import os
+
+from .schema import InputSchema, mercSchema, RoleSchema
+from .auth import CustomAuth
+
 cred=os.getenv("cred")
-os.environ["GOOGLE_CREDENTIALS_PATH"]=cred
+if cred:
+    os.environ["GOOGLE_CREDENTIALS_PATH"]=cred
+
 publisher=pubsub_v1.PublisherClient()
 INPUT_TOPIC=os.getenv("INPUT_TOPIC")
 MERCHANT_TOPIC=os.getenv("MERCHANT_TOPIC")
-import uuid
-from .schema import InputSchema, mercSchema
-from .auth import CustomAuth
 
 api=NinjaAPI()
-@api.post("/role-decider", auth=CustomAuth())
-def rolech(request, payload:RoleSchema):
-    user=request.auth
-    role=payload.role
-    art=get_object_or_404(ArtemisUser, email=user.email)
-    art.role=role
-    art.save()
-    return {"message": "role assigned successfully"}
 
+@api.get("/me", auth=CustomAuth())
+def get_me(request):
+    user = request.auth
+    return {
+        "email": user.email,
+        "role": user.role,
+        "google_id": user.google_id
+    }
 
 @api.get("/health")
 def health_check(request):
     return {"status": "OK"}
 
-
 @api.post("/role-decider", auth=CustomAuth())
 def role_choose(request, payload: RoleSchema):
     user = request.auth
     role = payload.role
+    if role not in ["user", "merchant"]:
+        raise HttpError(400, "Invalid role")
     art = get_object_or_404(ArtemisUser, email=user.email)
+    if art.role:
+        raise HttpError(400, "Role already assigned")
     art.role = role
     art.save()
     return {"message": "role assigned successfully", "role": role}
@@ -45,6 +48,9 @@ def role_choose(request, payload: RoleSchema):
 
 @api.post("/trigger", auth=CustomAuth())
 def trig(request, payload: InputSchema):
+    user = request.auth
+    if user.role != "user":
+        raise HttpError(403, "Only users can trigger offers")
     task_id=str(uuid.uuid4())
     intent_token=payload.intent_token
     geo_zone=payload.geo_zone
