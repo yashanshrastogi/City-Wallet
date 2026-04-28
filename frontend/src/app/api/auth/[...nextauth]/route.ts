@@ -40,7 +40,6 @@ const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   secret: process.env.NEXTAUTH_SECRET,
-  trustHost: true,
 });
 
 export const { GET, POST } = handlers;
